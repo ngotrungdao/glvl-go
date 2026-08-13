@@ -1,0 +1,46 @@
+{
+	"sources" : 
+	[
+		{
+			"file" : "/__w/lvgl/lvgl/build/_deps/fastgltf-subbuild/CMakeFiles/fastgltf-populate"
+		},
+		{
+			"file" : "/__w/lvgl/lvgl/build/_deps/fastgltf-subbuild/CMakeFiles/fastgltf-populate.rule"
+		},
+		{
+			"file" : "/__w/lvgl/lvgl/build/_deps/fastgltf-subbuild/CMakeFiles/fastgltf-populate-complete.rule"
+		},
+		{
+			"file" : "/__w/lvgl/lvgl/build/_deps/fastgltf-subbuild/fastgltf-populate-prefix/src/fastgltf-populate-stamp/fastgltf-populate-build.rule"
+		},
+		{
+			"file" : "/__w/lvgl/lvgl/build/_deps/fastgltf-subbuild/fastgltf-populate-prefix/src/fastgltf-populate-stamp/fastgltf-populate-configure.rule"
+		},
+		{
+			"file" : "/__w/lvgl/lvgl/build/_deps/fastgltf-subbuild/fastgltf-populate-prefix/src/fastgltf-populate-stamp/fastgltf-populate-download.rule"
+		},
+		{
+			"file" : "/__w/lvgl/lvgl/build/_deps/fastgltf-subbuild/fastgltf-populate-prefix/src/fastgltf-populate-stamp/fastgltf-populate-install.rule"
+		},
+		{
+			"file" : "/__w/lvgl/lvgl/build/_deps/fastgltf-subbuild/fastgltf-populate-prefix/src/fastgltf-populate-stamp/fastgltf-populate-mkdir.rule"
+		},
+		{
+			"file" : "/__w/lvgl/lvgl/build/_deps/fastgltf-subbuild/fastgltf-populate-prefix/src/fastgltf-populate-stamp/fastgltf-populate-patch.rule"
+		},
+		{
+			"file" : "/__w/lvgl/lvgl/build/_deps/fastgltf-subbuild/fastgltf-populate-prefix/src/fastgltf-populate-stamp/fastgltf-populate-test.rule"
+		},
+		{
+			"file" : "/__w/lvgl/lvgl/build/_deps/fastgltf-subbuild/fastgltf-populate-prefix/src/fastgltf-populate-stamp/fastgltf-populate-update.rule"
+		}
+	],
+	"target" : 
+	{
+		"labels" : 
+		[
+			"fastgltf-populate"
+		],
+		"name" : "fastgltf-populate"
+	}
+}

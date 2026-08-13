@@ -1,0 +1,9 @@
+{
+	"InstallScripts" : 
+	[
+		"/__w/lvgl/lvgl/build/cmake_install.cmake",
+		"/__w/lvgl/lvgl/build/_deps/sdl2-build/cmake_install.cmake",
+		"/__w/lvgl/lvgl/build/_deps/fastgltf-build/cmake_install.cmake"
+	],
+	"Parallel" : false
+}

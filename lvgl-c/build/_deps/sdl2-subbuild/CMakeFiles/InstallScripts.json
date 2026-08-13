@@ -1,0 +1,7 @@
+{
+	"InstallScripts" : 
+	[
+		"/__w/lvgl/lvgl/build/_deps/sdl2-subbuild/cmake_install.cmake"
+	],
+	"Parallel" : false
+}
