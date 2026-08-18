@@ -27,6 +27,33 @@ wrapper, not a complete 1:1 binding of LVGL's ~216 headers.
   `libpng-devel`, `libwebp-devel`).
 - Go 1.21+ (for `runtime/cgo.Handle`).
 
+### Getting `lvgl-c/install/` via CI artifact
+
+Instead of building LVGL yourself, `scripts/fetch_lvgl_artifact.py` downloads a prebuilt
+`lvgl-c` from the latest successful run of the `ngotrungdao/lvgl` repo's "Build and Package
+Artifact" GitHub Actions workflow and unpacks it into `lvgl-c/` at the repo root.
+
+It needs a GitHub token (artifact downloads aren't anonymous), looked up in this order:
+`--token`, `$GITHUB_TOKEN`, `$GH_TOKEN`, then `gh auth token` if the `gh` CLI is installed and
+logged in.
+
+```
+python3 scripts/fetch_lvgl_artifact.py
+```
+
+This lists the available artifacts for the latest run (e.g. `lvgl-build-fedora`,
+`lvgl-build-linux-arm64`, `lvgl-build-macos`, `lvgl-build-windows`) and prompts you to pick
+one. Useful flags:
+
+| Flag | Purpose |
+|---|---|
+| `--artifact NAME` | skip the interactive prompt, e.g. `--artifact lvgl-build-fedora` |
+| `--repo OWNER/REPO` | fetch from a different repo (default: `ngotrungdao/lvgl`) |
+| `--workflow NAME` | fetch from a different workflow (default: `Build and Package Artifact`) |
+| `--dest PATH` | extract somewhere other than `lvgl-c/` at the repo root |
+| `--clean` | delete the destination folder before extracting |
+| `--token TOKEN` | pass a GitHub token explicitly instead of relying on the environment/`gh` |
+
 ## File layout
 
 This is a single Go package (`package lvgl`) — Go can't split one package across

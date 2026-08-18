@@ -189,8 +189,8 @@ def main() -> None:
     parser.add_argument("--token", help="GitHub token")
     parser.add_argument(
         "--dest",
-        default=str(Path(__file__).resolve().parent / "lvgl-c"),
-        help="destination folder (default: ./lvgl-c)",
+        default=str(Path(__file__).resolve().parent.parent / "lvgl-c"),
+        help="destination folder (default: <repo root>/lvgl-c)",
     )
     parser.add_argument(
         "--clean",
