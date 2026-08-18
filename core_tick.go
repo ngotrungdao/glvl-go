@@ -34,3 +34,11 @@ func TickGet() uint32 {
 func TimerHandler() uint32 {
 	return uint32(C.lv_timer_handler())
 }
+
+// TimerTimeToNext returns the number of milliseconds until the
+// soonest-due LVGL timer needs to run, without actually running any
+// timers (unlike TimerHandler's return value, which is a side effect of
+// running them).
+func TimerTimeToNext() uint32 {
+	return uint32(C.lv_timer_get_time_to_next())
+}

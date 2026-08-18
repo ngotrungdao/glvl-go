@@ -63,3 +63,11 @@ func (d *Display) Keyboard() *Indev { return wrapIndev(C.lv_wayland_get_keyboard
 
 // Touchscreen returns the display's touchscreen input device.
 func (d *Display) Touchscreen() *Indev { return wrapIndev(C.lv_wayland_get_touchscreen(d.c)) }
+
+// RotatePointCCW rotates p in place opposite to the display's configured
+// software rotation and returns the result.
+func (d *Display) RotatePointCCW(p Point) Point {
+	cp := C.lv_point_t{x: C.int32_t(p.X), y: C.int32_t(p.Y)}
+	C.lv_display_rotate_point_ccw(d.c, &cp)
+	return Point{X: int32(cp.x), Y: int32(cp.y)}
+}

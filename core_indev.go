@@ -117,3 +117,17 @@ func (i *Indev) SetLongPressRepeatTime(ms uint16) {
 func (i *Indev) SetScrollLimit(pixels uint8) {
 	C.lv_indev_set_scroll_limit(i.c, C.uint8_t(pixels))
 }
+
+// SetCCW enables/disables Counter-Clock-Wise rotation processing for the
+// input device.
+func (i *Indev) SetCCW(enable bool) {
+	if enable {
+		C.lv_indev_set_ccw(i.c)
+	} else {
+		C.lv_indev_clear_ccw(i.c)
+	}
+}
+
+// CCW reports whether CCW rotation processing is set for the input
+// device.
+func (i *Indev) CCW() bool { return bool(C.lv_indev_get_ccw(i.c)) }
