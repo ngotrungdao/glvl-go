@@ -79,6 +79,8 @@ prefix instead, mirroring `install/include/lvgl`'s directory layout:
 | `draw_color.go` | `draw/` | `Color` |
 | `layouts_*.go` | `layouts/` | flex, grid |
 | `display_sdl.go` | `display/` + `drivers/sdl/` | `Display`, window creation |
+| `display_drm.go` | `display/` + `drivers/display/lv_linux_drm.h` | `DRMDisplay` — windowless display, see "Windowed vs. windowless" below |
+| `indev_evdev.go` (build tag `evdev`) | `drivers/indev/lv_evdev.h` | evdev input for `DRMDisplay` targets, see "Windowed vs. windowless" below |
 | `font_symbols.go` | `font/` | `Symbol*` icon-font glyph constants |
 | `font_font.go` | `font/` + `libs/freetype/` + `libs/tiny_ttf/` | `Font`, built-in/FreeType/TinyTTF loading |
 | `widgets_*.go` | `widgets/` | one file per LVGL widget |
@@ -111,6 +113,10 @@ Run the bundled examples:
 go run ./example/basic    # a few interactive widgets
 go run ./example/gallery  # every wrapped widget on one screen
 ```
+
+This opens an ordinary desktop window. For a fullscreen, windowless target with no desktop
+environment at all (e.g. a headless Raspberry Pi), see "Windowed vs. windowless: choosing a
+display driver" below instead.
 
 ## Memory ownership
 
@@ -229,7 +235,144 @@ subsystems are now covered:
   path using a registered drive letter, e.g. `"A:/tmp/file.txt"` with this build's stdio
   driver). Registering a *custom* FS driver isn't wrapped (a bigger, separate API).
 
-Not covered: **vector graphics/SVG drawing** (`draw/lv_draw_vector.h`, 572 lines) — a
+## Windowed vs. windowless: choosing a display driver
+
+This package wraps two different LVGL display drivers, and they solve different problems —
+which one to use depends on whether you want an app that lives *inside* an existing desktop,
+or an app that *is* the entire screen.
+
+| | `SDLWindowCreate` (windowed) | `DRMDisplayCreate` (windowless) |
+|---|---|---|
+| What it creates | An ordinary window on your desktop | Nothing — it takes over the physical display's own framebuffer directly |
+| Needs | X11 or Wayland (a running desktop/compositor) | Nothing — no X11, Wayland, or SDL2 at all |
+| Title bar / decorations | Yes, drawn by your window manager | **None, ever** — there's no window manager to draw them, by design |
+| Typical use | Development on a desktop, an app that coexists with others | A dedicated kiosk/embedded UI, e.g. a Raspberry Pi with no desktop installed |
+| Exclusivity | Any number of windows can coexist | Exclusive — fails if anything else (a compositor, another DRM client) already holds the display |
+| Driver file | `display_sdl.go` | `display_drm.go` |
+
+### Windowed (SDL2)
+
+```go
+lvgl.Init()
+disp := lvgl.SDLWindowCreate(480, 320, "my app")
+label := lvgl.NewLabel(disp.ScreenActive())
+label.SetText("Hello!")
+label.Center()
+lvgl.Run(disp) // blocks until the window closes
+```
+
+This is what every example under `example/` other than `headless-drm` uses. See "Window
+driver notes" below for `Display`'s SDL-specific behavior (`IsOpen`/`Close`,
+`Pointer`/`Keyboard`, the `LV_SDL_DIRECT_EXIT` exit-on-close quirk).
+
+### Windowless (DRM/KMS)
+
+For a genuinely headless target — no desktop environment at all — `display_drm.go` wraps
+`DRMDisplay`, backed by LVGL's native Linux DRM/KMS driver (`LV_USE_LINUX_DRM`, confirmed
+compiled into this build's `liblvgl.a` via `nm`). It talks straight to `/dev/dri/cardN` via
+DRM/KMS + GBM. There is no window, no title bar, and nothing to draw one even if there were —
+this is the literal opposite of `SDLWindowCreate`, not a borderless/fullscreen variant of it.
+
+```go
+package main
+
+import (
+	"fmt"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
+
+	"lvgl"
+)
+
+func main() {
+	lvgl.Init()
+
+	disp := lvgl.DRMDisplayCreate()
+	path, err := lvgl.FindDRMDevicePath() // or a literal "/dev/dri/card0"
+	if err != nil {
+		fmt.Println("FindDRMDevicePath:", err)
+		os.Exit(1)
+	}
+	if err := disp.SetFile(path, -1); err != nil { // -1: auto-select the connector
+		fmt.Println("SetFile:", err)
+		os.Exit(1)
+	}
+
+	label := lvgl.NewLabel(disp.ScreenActive())
+	label.SetText("Hello from a headless Pi")
+	label.Center()
+
+	// No lvgl.Run() here -- it's typed to the SDL Display, and DRM has no
+	// "window closed" event to key off anyway. Loop until killed instead.
+	stop := make(chan os.Signal, 1)
+	signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
+
+	for {
+		select {
+		case <-stop:
+			return
+		default:
+		}
+		lvgl.TimerHandler()
+		time.Sleep(16 * time.Millisecond)
+	}
+}
+```
+
+`example/headless-drm` is the fuller runnable version of this (UI + evdev input wiring + a
+signal-driven exit loop, since there's no window-close event to key off):
+
+```
+go run ./example/headless-drm                        # auto-detect the DRM device
+go run ./example/headless-drm -device=/dev/dri/card1  # or pick one explicitly
+go run -tags evdev ./example/headless-drm             # with real keyboard/touch input
+```
+
+**On systems with more than one GPU, `FindDRMDevicePath`/auto-detection can pick a device
+with nothing plugged into it** — confirmed on real hardware in this pass: on a machine with
+both an Intel iGPU and a discrete AMD GPU, auto-detect grabbed the card with no connected
+output, failing with `drm_device_init: Failed to find a suitable connector`. Check
+`/sys/class/drm/card*-*/status` for whichever `cardN-<connector>` says `connected`, then pass
+that card explicitly (`-device=/dev/dri/cardN`, or `SetFile("/dev/dri/cardN", -1)`) instead
+of relying on auto-detection.
+
+Custom DRM mode selection (`lv_linux_drm_set_mode_cb`) isn't wrapped — its C callback
+signature has no `user_data` slot to carry a Go closure through, and the default behavior
+(select the connector's native/preferred mode) is what a fixed embedded panel wants anyway.
+
+For input without X11/Wayland/libinput, `indev_evdev.go` wraps `lv_evdev_*` directly against
+`/dev/input/eventN`. **This file is gated behind the `evdev` build tag** — build with
+`-tags evdev` once `lvgl-c` has `LV_USE_EVDEV=1` (this repo's own prebuilt `liblvgl.a` now
+has it enabled, confirmed via `nm liblvgl.a | grep lv_evdev_create`: present):
+
+```go
+kb, err := lvgl.EvdevCreate(lvgl.IndevTypeKeypad, "/dev/input/event0")
+```
+
+Or use `EvdevDiscoveryStart(fn)` to auto-attach every evdev device already present (and any
+that appear later) instead of hardcoding paths — this is what `example/headless-drm`'s
+`input_evdev.go` does.
+
+**Status, verified on real hardware in this pass**: `display_drm.go` compiles *and links*
+against this repo's x86-64 `liblvgl.a`, and `example/headless-drm -device=<the connected
+card>` gets all the way through device-open and connector selection successfully — the
+*only* thing blocking an actual render on this dev machine is `drm_device_init: Failed to
+become DRM master`, because the live desktop compositor (`kwin_wayland`) already holds that
+GPU as DRM master. That's DRM correctly refusing a second client, not a bug — it confirms the
+device/connector-selection code path is right, just not exercisable from inside a live
+desktop session (a bare VT with no compositor running, or genuinely headless hardware, would
+get past it). `indev_evdev.go` now compiles *and links* successfully too (`go build -tags
+evdev ./...`), since this repo's `lvgl-c` was rebuilt with `LV_USE_EVDEV=1` partway through
+this work — not yet exercised against a real input device. Still unverified: actual rendered
+output on a display DRM has exclusive access to, and everything ARM-specific — this repo's
+`lvgl-c/install/lib64/*.a` are x86-64 builds (confirmed via `file`); a Raspberry Pi Zero 2W
+needs `lvgl-c` rebuilt for `arm`/`arm64` before any of this runs there at all.
+
+## Not covered
+
+**Vector graphics/SVG drawing** (`draw/lv_draw_vector.h`, 572 lines) — a
 genuinely separate, large 2D drawing API (matrices, paths, gradients, layers), comparable in
 scope to wrapping a mini Cairo/Skia; deliberately out of scope for this pass rather than
 wrapped shallowly.
@@ -346,9 +489,10 @@ re-verified, until someone runs them.
   program (`example/coresubsystems`) against a fresh, small scene, where they're fully
   reliable — real apps should keep this in mind if a single screen accumulates a very large
   number of live widgets over time in this environment.
-- SDL2-only: no Wayland/DRM/X11-native display backend wrapper (LVGL supports them and this
-  `lvgl-c` build even has the Wayland driver compiled in alongside SDL2, but this package only
-  wires up SDL2's).
+- SDL2 and DRM only: no Wayland/X11-native display backend wrapper (LVGL supports them and
+  this `lvgl-c` build even has the Wayland driver compiled in alongside SDL2, but this package
+  only wires up SDL2's and, for windowless targets, `LV_USE_LINUX_DRM`'s — see "Windowed vs.
+  windowless" above).
 - **Closing the window via its `[x]` button exits the process directly, skipping Go cleanup**
   — this build has `LV_SDL_DIRECT_EXIT=1` (see `lv_conf.h`), and LVGL's SDL driver calls
   `exit(0)` from its own internal SDL event pump once the last window closes and SDL posts

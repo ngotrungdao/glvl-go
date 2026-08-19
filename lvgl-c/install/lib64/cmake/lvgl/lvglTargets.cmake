@@ -61,7 +61,7 @@ add_library(lvgl::lvgl STATIC IMPORTED)
 set_target_properties(lvgl::lvgl PROPERTIES
   INTERFACE_COMPILE_DEFINITIONS "LV_CONF_INCLUDE_SIMPLE"
   INTERFACE_INCLUDE_DIRECTORIES "${_IMPORT_PREFIX}/include"
-  INTERFACE_LINK_LIBRARIES "\$<LINK_ONLY:m>;\$<LINK_ONLY:>;\$<LINK_ONLY:>;\$<LINK_ONLY:>;\$<LINK_ONLY:>;\$<LINK_ONLY:>;\$<LINK_ONLY:>;\$<LINK_ONLY:>;\$<LINK_ONLY:WebP::webp>;\$<LINK_ONLY:>;\$<LINK_ONLY:>;\$<LINK_ONLY:>;\$<LINK_ONLY:>;\$<LINK_ONLY:>;\$<LINK_ONLY:>;\$<LINK_ONLY:>;\$<LINK_ONLY:JPEG::JPEG>;\$<LINK_ONLY:PNG::PNG>;\$<LINK_ONLY:Freetype::Freetype>;\$<LINK_ONLY:>;-ldrm;-lgbm;-lwayland-client;-lwayland-cursor;-lwayland-egl;-lxkbcommon;-lgstreamer-1.0 -lgstvideo-1.0 -lgstapp-1.0;-lavcodec -lavformat -lavutil -lswscale"
+  INTERFACE_LINK_LIBRARIES "\$<LINK_ONLY:m>;\$<LINK_ONLY:>;\$<LINK_ONLY:>;\$<LINK_ONLY:>;\$<LINK_ONLY:>;\$<LINK_ONLY:>;\$<LINK_ONLY:>;\$<LINK_ONLY:>;\$<LINK_ONLY:>;\$<LINK_ONLY:WebP::webp>;\$<LINK_ONLY:>;\$<LINK_ONLY:>;\$<LINK_ONLY:>;\$<LINK_ONLY:>;\$<LINK_ONLY:>;\$<LINK_ONLY:>;\$<LINK_ONLY:>;\$<LINK_ONLY:JPEG::JPEG>;\$<LINK_ONLY:PNG::PNG>;\$<LINK_ONLY:Freetype::Freetype>;\$<LINK_ONLY:>;-ldrm;-lgbm;-lwayland-client;-lwayland-cursor;-lwayland-egl;-lxkbcommon;-levdev;-lgstreamer-1.0 -lgstvideo-1.0 -lgstapp-1.0;-lavcodec -lavformat -lavutil -lswscale"
   INTERFACE_SYSTEM_INCLUDE_DIRECTORIES "${_IMPORT_PREFIX}/include"
 )
 

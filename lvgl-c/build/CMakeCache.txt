@@ -548,6 +548,9 @@ LV_FETCH_WEBP:BOOL=ON
 //Resolve dependencies via find_package
 LV_USE_FIND_PACKAGE:BOOL=ON
 
+//Resolve libevdev via find_package
+LV_USE_FIND_PACKAGE_EVDEV:BOOL=ON
+
 //Resolve fastgltf via find_package
 LV_USE_FIND_PACKAGE_FASTGLTF:BOOL=ON
 
@@ -587,6 +590,9 @@ LV_USE_FIND_PACKAGE_XKBCOMMON:BOOL=ON
 //Resolve dependencies via pkg-config (requires pkg-config to be
 // installed)
 LV_USE_PKG_CONFIG:BOOL=ON
+
+//Resolve libevdev via pkg-config
+LV_USE_PKG_CONFIG_EVDEV:BOOL=ON
 
 //Resolve FFmpeg via pkg-config
 LV_USE_PKG_CONFIG_FFMPEG:BOOL=ON
@@ -1033,6 +1039,9 @@ ZLIB_LIBRARY_DEBUG:FILEPATH=ZLIB_LIBRARY_DEBUG-NOTFOUND
 //Path to a library.
 ZLIB_LIBRARY_RELEASE:FILEPATH=/usr/lib64/libz.so
 
+//The directory containing a CMake configuration file for evdev.
+evdev_DIR:PATH=evdev_DIR-NOTFOUND
+
 //Value Computed by CMake
 fastgltf_BINARY_DIR:STATIC=/__w/lvgl/lvgl/build/_deps/fastgltf-build
 
@@ -1071,6 +1080,9 @@ pkgcfg_lib_AVUTIL_avutil:FILEPATH=/usr/lib64/libavutil.so
 
 //Path to a library.
 pkgcfg_lib_EGL_EGL:FILEPATH=/usr/lib64/libEGL.so
+
+//Path to a library.
+pkgcfg_lib_EVDEV_evdev:FILEPATH=/usr/lib64/libevdev.so
 
 //Path to a library.
 pkgcfg_lib_GSTREAMER_APP_glib-2.0:FILEPATH=/usr/lib64/libglib-2.0.so
@@ -1532,12 +1544,47 @@ EGL_egl_INCLUDEDIR:INTERNAL=
 EGL_egl_LIBDIR:INTERNAL=
 EGL_egl_PREFIX:INTERNAL=
 EGL_egl_VERSION:INTERNAL=
+EVDEV_CFLAGS:INTERNAL=-I/usr/include/libevdev-1.0
+EVDEV_CFLAGS_I:INTERNAL=
+EVDEV_CFLAGS_OTHER:INTERNAL=
+EVDEV_FOUND:INTERNAL=1
+EVDEV_INCLUDEDIR:INTERNAL=/usr/include
+EVDEV_INCLUDE_DIRS:INTERNAL=/usr/include/libevdev-1.0
+EVDEV_LDFLAGS:INTERNAL=-L/usr/lib64;-levdev
+EVDEV_LDFLAGS_OTHER:INTERNAL=
+EVDEV_LIBDIR:INTERNAL=/usr/lib64
+EVDEV_LIBRARIES:INTERNAL=evdev
+EVDEV_LIBRARY_DIRS:INTERNAL=/usr/lib64
+EVDEV_LIBS:INTERNAL=
+EVDEV_LIBS_L:INTERNAL=
+EVDEV_LIBS_OTHER:INTERNAL=
+EVDEV_LIBS_PATHS:INTERNAL=
+EVDEV_MODULE_NAME:INTERNAL=libevdev
+EVDEV_PREFIX:INTERNAL=/usr
+EVDEV_STATIC_CFLAGS:INTERNAL=-I/usr/include/libevdev-1.0
+EVDEV_STATIC_CFLAGS_I:INTERNAL=
+EVDEV_STATIC_CFLAGS_OTHER:INTERNAL=
+EVDEV_STATIC_INCLUDE_DIRS:INTERNAL=/usr/include/libevdev-1.0
+EVDEV_STATIC_LDFLAGS:INTERNAL=-L/usr/lib64;-levdev;-lrt
+EVDEV_STATIC_LDFLAGS_OTHER:INTERNAL=
+EVDEV_STATIC_LIBDIR:INTERNAL=
+EVDEV_STATIC_LIBRARIES:INTERNAL=evdev;rt
+EVDEV_STATIC_LIBRARY_DIRS:INTERNAL=/usr/lib64
+EVDEV_STATIC_LIBS:INTERNAL=
+EVDEV_STATIC_LIBS_L:INTERNAL=
+EVDEV_STATIC_LIBS_OTHER:INTERNAL=
+EVDEV_STATIC_LIBS_PATHS:INTERNAL=
+EVDEV_VERSION:INTERNAL=1.13.7
+EVDEV_libevdev_INCLUDEDIR:INTERNAL=
+EVDEV_libevdev_LIBDIR:INTERNAL=
+EVDEV_libevdev_PREFIX:INTERNAL=
+EVDEV_libevdev_VERSION:INTERNAL=
 //Details about finding Git
 FIND_PACKAGE_MESSAGE_DETAILS_Git:INTERNAL=[/usr/sbin/git][v2.55.0()]
 //Details about finding PkgConfig
 FIND_PACKAGE_MESSAGE_DETAILS_PkgConfig:INTERNAL=[/usr/sbin/pkg-config][v2.5.1()]
 //Details about finding Python
-FIND_PACKAGE_MESSAGE_DETAILS_Python:INTERNAL=[/usr/sbin/python3.14][found components: Interpreter ][v3.14.6()]
+FIND_PACKAGE_MESSAGE_DETAILS_Python:INTERNAL=[/usr/sbin/python3.14][found components: Interpreter ][v3.14.7()]
 //Have library c
 FOUND_CLOCK_GETTIME_LIBC:INTERNAL=1
 //ADVANCED property for variable: FREETYPE_INCLUDE_DIR_freetype2
@@ -2141,7 +2188,7 @@ LIBGBM_STATIC_LIBS:INTERNAL=
 LIBGBM_STATIC_LIBS_L:INTERNAL=
 LIBGBM_STATIC_LIBS_OTHER:INTERNAL=
 LIBGBM_STATIC_LIBS_PATHS:INTERNAL=
-LIBGBM_VERSION:INTERNAL=26.1.6
+LIBGBM_VERSION:INTERNAL=26.1.7
 LIBGBM_gbm_INCLUDEDIR:INTERNAL=
 LIBGBM_gbm_LIBDIR:INTERNAL=
 LIBGBM_gbm_PREFIX:INTERNAL=
@@ -2217,7 +2264,7 @@ PKG_KMSDRM_gbm_INCLUDEDIR:INTERNAL=/usr/include
 PKG_KMSDRM_gbm_LIBDIR:INTERNAL=/usr/lib64
 PKG_KMSDRM_gbm_MODULE_NAME:INTERNAL=gbm
 PKG_KMSDRM_gbm_PREFIX:INTERNAL=/usr
-PKG_KMSDRM_gbm_VERSION:INTERNAL=26.1.6
+PKG_KMSDRM_gbm_VERSION:INTERNAL=26.1.7
 PKG_KMSDRM_libdrm_INCLUDEDIR:INTERNAL=/usr/include
 PKG_KMSDRM_libdrm_LIBDIR:INTERNAL=/usr/lib64
 PKG_KMSDRM_libdrm_MODULE_NAME:INTERNAL=libdrm
@@ -2585,7 +2632,7 @@ _Python_Development_REASON_FAILURE:INTERNAL=
 //Path to a program.
 _Python_EXECUTABLE:INTERNAL=/usr/sbin/python3.14
 //Python Properties
-_Python_INTERPRETER_PROPERTIES:INTERNAL=Python;3;14;6;64;32;<none>;cpython-314-x86_64-linux-gnu;abi3;/usr/lib64/python3.14;/usr/local/lib64/python3.14;/usr/local/lib/python3.14/site-packages;/usr/local/lib64/python3.14/site-packages
+_Python_INTERPRETER_PROPERTIES:INTERNAL=Python;3;14;7;64;32;<none>;cpython-314-x86_64-linux-gnu;abi3;/usr/lib64/python3.14;/usr/local/lib64/python3.14;/usr/local/lib/python3.14/site-packages;/usr/local/lib64/python3.14/site-packages
 _Python_INTERPRETER_SIGNATURE:INTERNAL=5b3efb398f52f432e47c87e4ea103d3c
 //NumPy reason failure
 _Python_NumPy_REASON_FAILURE:INTERNAL=
@@ -2593,6 +2640,7 @@ __pkg_config_arguments_AVCODEC:INTERNAL=IMPORTED_TARGET;QUIET;libavcodec
 __pkg_config_arguments_AVFORMAT:INTERNAL=IMPORTED_TARGET;QUIET;libavformat
 __pkg_config_arguments_AVUTIL:INTERNAL=IMPORTED_TARGET;QUIET;libavutil
 __pkg_config_arguments_EGL:INTERNAL=egl
+__pkg_config_arguments_EVDEV:INTERNAL=IMPORTED_TARGET;QUIET;libevdev
 __pkg_config_arguments_GSTREAMER:INTERNAL=IMPORTED_TARGET;QUIET;gstreamer-1.0
 __pkg_config_arguments_GSTREAMER_APP:INTERNAL=IMPORTED_TARGET;QUIET;gstreamer-app-1.0
 __pkg_config_arguments_GSTREAMER_VIDEO:INTERNAL=IMPORTED_TARGET;QUIET;gstreamer-video-1.0
@@ -2609,6 +2657,7 @@ __pkg_config_checked_AVCODEC:INTERNAL=1
 __pkg_config_checked_AVFORMAT:INTERNAL=1
 __pkg_config_checked_AVUTIL:INTERNAL=1
 __pkg_config_checked_EGL:INTERNAL=1
+__pkg_config_checked_EVDEV:INTERNAL=1
 __pkg_config_checked_GSTREAMER:INTERNAL=1
 __pkg_config_checked_GSTREAMER_APP:INTERNAL=1
 __pkg_config_checked_GSTREAMER_VIDEO:INTERNAL=1
@@ -2635,6 +2684,8 @@ pkgcfg_lib_AVFORMAT_avformat-ADVANCED:INTERNAL=1
 pkgcfg_lib_AVUTIL_avutil-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: pkgcfg_lib_EGL_EGL
 pkgcfg_lib_EGL_EGL-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: pkgcfg_lib_EVDEV_evdev
+pkgcfg_lib_EVDEV_evdev-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: pkgcfg_lib_GSTREAMER_APP_glib-2.0
 pkgcfg_lib_GSTREAMER_APP_glib-2.0-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: pkgcfg_lib_GSTREAMER_APP_gobject-2.0

@@ -7,7 +7,7 @@ Description: Light and Versatile Graphics Library
 URL: https://lvgl.io/
 Version: 9.6.0
 Requires: 
-Requires.private: libdrm gbm wayland-client wayland-cursor wayland-egl xkbcommon libwebp gstreamer-1.0 gstreamer-video-1.0 gstreamer-app-1.0 libavcodec libavformat libavutil libswscale libjpeg libpng freetype2
+Requires.private: libdrm gbm wayland-client wayland-cursor wayland-egl xkbcommon libevdev libwebp gstreamer-1.0 gstreamer-video-1.0 gstreamer-app-1.0 libavcodec libavformat libavutil libswscale libjpeg libpng freetype2
 Cflags: -I${includedir} -DLV_CONF_INCLUDE_SIMPLE
 Libs: -L${libdir} -llvgl 
-Libs.private: -lm -lSDL2 -ldrm -lgbm -lwayland-client -lwayland-cursor -lwayland-egl -lxkbcommon -lwebp -lgstreamer-1.0 -lgstvideo-1.0 -lgstapp-1.0 -lavcodec -lavformat -lavutil -lswscale -ljpeg -lpng -lfreetype -lfastgltf
+Libs.private: -lm -lSDL2 -ldrm -lgbm -lwayland-client -lwayland-cursor -lwayland-egl -lxkbcommon -levdev -lwebp -lgstreamer-1.0 -lgstvideo-1.0 -lgstapp-1.0 -lavcodec -lavformat -lavutil -lswscale -ljpeg -lpng -lfreetype -lfastgltf
