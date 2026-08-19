@@ -1,5 +1,5 @@
 // Package lvgl is a hand-written Go wrapper around LVGL 9.6, targeting the
-// Wayland display backend. It covers the core object model, the event
+// SDL2 display backend. It covers the core object model, the event
 // system, styles, flex/grid layout, animation, and a broad (not exhaustive)
 // set of common widgets.
 //
@@ -21,14 +21,14 @@
 // files are grouped by filename prefix instead, mirroring
 // install/include/lvgl's directory layout: core_*.go (object model,
 // events, animation, styles), draw_color.go, layouts_*.go (flex/grid),
-// display_wayland.go, font_symbols.go, and widgets_*.go (one per LVGL
+// display_sdl.go, font_symbols.go, and widgets_*.go (one per LVGL
 // widget). cgo.go/app.go/handle.go are package-level glue with no single
 // LVGL header counterpart.
 package lvgl
 
 /*
 #cgo CFLAGS: -I${SRCDIR}/lvgl-c/install/include/lvgl -DLV_CONF_INCLUDE_SIMPLE
-#cgo LDFLAGS: -L${SRCDIR}/lvgl-c/install/lib64 -llvgl -lwayland-client -lwayland-cursor -lwayland-egl -lxkbcommon -lfreetype -ljpeg -lpng -lwebp -lm -lgstvideo-1.0 -lgstbase-1.0 -lgstreamer-1.0 -lgobject-2.0 -lglib-2.0 -lavformat -lavcodec -lavutil -lswscale
+#cgo LDFLAGS: -L${SRCDIR}/lvgl-c/install/lib64 -llvgl -lSDL2 -lwayland-client -lwayland-cursor -lwayland-egl -lxkbcommon -lfreetype -ljpeg -lpng -lwebp -lm -lgstvideo-1.0 -lgstbase-1.0 -lgstreamer-1.0 -lgobject-2.0 -lglib-2.0 -lavformat -lavcodec -lavutil -lswscale
 #include <lvgl.h>
 */
 import "C"

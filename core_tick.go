@@ -9,21 +9,21 @@ import "C"
 // milliseconds, for backends that need the host to manually drive the
 // tick source (LVGL doesn't auto-manage one universally).
 //
-// The Wayland driver used by this package registers a real tick callback
-// of its own (verified: TickGet() advances with real wall-clock time
-// even if TickInc is never called), so once a Display exists via
-// WaylandWindowCreate, TickInc calls are effectively no-ops — LVGL is
-// already reading a real clock. Run (app.go) still calls it every
-// iteration for backend-agnosticism, but its correctness in practice
-// comes from pacing with time.Sleep between TimerHandler calls, not from
-// TickInc. Don't rely on TickInc to control time once a Wayland window
-// is open — poll/sleep in real time instead (see Run for the pattern).
+// The SDL2 driver used by this package registers a real tick callback of
+// its own (lv_sdl_window_create calls lv_tick_set_cb(SDL_GetTicks)), so
+// once a Display exists via SDLWindowCreate, TickInc calls are
+// effectively no-ops — LVGL is already reading a real clock. Run (app.go)
+// still calls it every iteration for backend-agnosticism, but its
+// correctness in practice comes from pacing with time.Sleep between
+// TimerHandler calls, not from TickInc. Don't rely on TickInc to control
+// time once an SDL window is open — poll/sleep in real time instead (see
+// Run for the pattern).
 func TickInc(tickPeriodMs uint32) {
 	C.lv_tick_inc(C.uint32_t(tickPeriodMs))
 }
 
 // TickGet returns LVGL's current tick count in milliseconds. With the
-// Wayland backend (see TickInc), this reflects real wall-clock time.
+// SDL2 backend (see TickInc), this reflects real wall-clock time.
 func TickGet() uint32 {
 	return uint32(C.lv_tick_get())
 }

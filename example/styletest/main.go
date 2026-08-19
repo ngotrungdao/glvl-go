@@ -6,9 +6,9 @@ import "lvgl"
 
 func main() {
 	lvgl.Init()
-	disp := lvgl.WaylandWindowCreate(400, 300, "lvgl-go style test")
+	disp := lvgl.SDLWindowCreate(400, 300, "lvgl-go style test")
 	if disp == nil {
-		panic("failed to create Wayland window")
+		panic("failed to create SDL window")
 	}
 	screen := disp.ScreenActive()
 

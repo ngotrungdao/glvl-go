@@ -7,9 +7,9 @@ import "lvgl"
 func main() {
 	lvgl.Init()
 
-	disp := lvgl.WaylandWindowCreate(500, 400, "lvgl-go gallery 3")
+	disp := lvgl.SDLWindowCreate(500, 400, "lvgl-go gallery 3")
 	if disp == nil {
-		panic("failed to create Wayland window")
+		panic("failed to create SDL window")
 	}
 	screen := disp.ScreenActive()
 	screen.SetFlexFlow(lvgl.FlexFlowRowWrap)

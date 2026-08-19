@@ -20,7 +20,7 @@ var (
 // button, or encoder). This package doesn't wrap creating custom input
 // device drivers (LVGL's read-callback registration for that is a
 // separate, lower-level API) — Indev values here come from an existing
-// driver, e.g. Display.Pointer/Keyboard for the Wayland backend.
+// driver, e.g. Display.Pointer/Keyboard for the SDL2 backend.
 type Indev struct {
 	c *C.lv_indev_t
 }

@@ -1,4 +1,4 @@
-// Command basic opens a Wayland window exercising the widgets and event
+// Command basic opens an SDL window exercising the widgets and event
 // system built so far: a label, a button that updates it on click, and a
 // slider that reports its value.
 package main
@@ -12,9 +12,9 @@ import (
 func main() {
 	lvgl.Init()
 
-	disp := lvgl.WaylandWindowCreate(480, 320, "lvgl-go")
+	disp := lvgl.SDLWindowCreate(480, 320, "lvgl-go")
 	if disp == nil {
-		panic("failed to create Wayland window")
+		panic("failed to create SDL window")
 	}
 	screen := disp.ScreenActive()
 

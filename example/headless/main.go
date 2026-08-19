@@ -2,7 +2,7 @@
 // exercises object creation, event callback dispatch through the
 // cgo.Handle trampoline, the auto-cleanup hook, and style/grid pinning,
 // with forced GC cycles in between to catch premature-collection bugs.
-// It opens an (invisible, 1x1) Wayland window purely because LVGL 9.6
+// It opens an (invisible, 1x1) SDL window purely because LVGL 9.6
 // requires at least one display registered before any screen/object can
 // be created; the wrapper doesn't have a dummy/software display
 // constructor yet, so this isn't truly headless despite the name.
@@ -59,9 +59,9 @@ func check(name string, cond bool) {
 func main() {
 	lvgl.Init()
 
-	disp := lvgl.WaylandWindowCreate(1, 1, "lvgl-go headless check")
+	disp := lvgl.SDLWindowCreate(1, 1, "lvgl-go headless check")
 	if disp == nil {
-		fmt.Println("FAIL: could not create a Wayland window (is a compositor running?)")
+		fmt.Println("FAIL: could not create an SDL window (is a display available?)")
 		os.Exit(1)
 	}
 	screen := disp.ScreenActive()

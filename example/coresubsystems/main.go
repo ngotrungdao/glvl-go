@@ -58,9 +58,9 @@ func check(name string, cond bool) {
 func main() {
 	lvgl.Init()
 
-	disp := lvgl.WaylandWindowCreate(1, 1, "lvgl-go coresubsystems check")
+	disp := lvgl.SDLWindowCreate(1, 1, "lvgl-go coresubsystems check")
 	if disp == nil {
-		fmt.Println("FAIL: could not create a Wayland window (is a compositor running?)")
+		fmt.Println("FAIL: could not create an SDL window (is a display available?)")
 		os.Exit(1)
 	}
 	screen := disp.ScreenActive()

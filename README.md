@@ -1,6 +1,6 @@
 # lvgl (Go)
 
-A hand-written Go/cgo wrapper around [LVGL](https://lvgl.io/) 9.6, targeting the **Wayland**
+A hand-written Go/cgo wrapper around [LVGL](https://lvgl.io/) 9.6, targeting the **SDL2**
 display backend. It covers the core object model, the event system, styles, flex/grid
 layout, animation, and about twenty of the most common widgets. It is a broad, practical
 wrapper, not a complete 1:1 binding of LVGL's ~216 headers.
@@ -11,18 +11,30 @@ wrapper, not a complete 1:1 binding of LVGL's ~216 headers.
   `lvgl-c/install/` (a plain directory living inside this repo, built via CMake into
   `lvgl-c/build/` — not an external symlink). Adjust the paths in `cgo.go` if yours live
   elsewhere. This build has `LV_USE_THORVG=0`, so no `libstdc++`/ThorVG dependency is needed.
-- Wayland client dev libraries: `wayland-client`, `wayland-cursor`, `wayland-egl`,
+- SDL2 dev libraries (Fedora: `SDL2-devel`). `liblvgl.a` has an unconditional undefined
+  reference to `SDL_Init` and friends from its `drivers/sdl` object files (confirmed via
+  `nm liblvgl.a | grep SDL_Init` — shows `U`, i.e. unresolved), so `-lSDL2` has to be supplied
+  at link time; `cgo.go`'s LDFLAGS assume a system-installed SDL2, not the vendored copy CMake
+  fetches into `lvgl-c/build/_deps/sdl2-build/` for the C build itself — that path is an
+  internal CMake build artifact, not part of the portable `lvgl-c/install/` tree the fetch
+  script populates, so point `cgo.go` at it yourself if you'd rather link the vendored copy
+  than install a system package. Per `lv_conf.h`, this build still has `LV_USE_DRAW_SW=0`
+  (NanoVG-on-GLES rasterization, same as before) and `LV_SDL_USE_EGL=1`, so the SDL window is
+  created with the `SDL_WINDOW_OPENGL` flag — a working GLES/EGL context is still required,
+  same as under the Wayland driver this replaced. Verified end-to-end: `go run ./example/basic`
+  opens a real window and renders correctly.
+- Wayland client dev libraries are *still* required at link time even though this wrapper only
+  calls the SDL2 driver's API: `wayland-client`, `wayland-cursor`, `wayland-egl`,
   `wayland-protocols`, `libxkbcommon` (Fedora: `wayland-devel`, `wayland-protocols-devel`,
-  `libxkbcommon-devel` — `wayland-egl` ships as part of `wayland-devel`). `wayland-egl` is a
-  genuine runtime dependency for this `lvgl-c` build, not just a link-time one: it has
-  `LV_USE_DRAW_NANOVG=1`/`LV_USE_DRAW_SW=0` and `LV_WAYLAND_USE_SHM=0`, so LVGL rasterizes with
-  NanoVG on OpenGL ES and presents frames to the compositor as EGL-backed `wl_buffer`s rather
-  than plain SHM — confirmed with `WAYLAND_DEBUG=1`, which shows the window's `wl_surface`
-  attaching buffers from a "mesa egl surface queue". (An earlier LVGL build used underneath
-  this wrapper rendered via plain SHM software rasterization instead; that is no longer the
-  case after switching to the `lvgl-c` build.)
+  `libxkbcommon-devel`). This `lvgl-c` build has both `LV_USE_SDL=1` and `LV_USE_WAYLAND=1`
+  (see `lv_conf.h`), and `liblvgl.a`'s Wayland driver object files (`lv_wayland*.c.o`) get
+  pulled into the link regardless of whether Go ever calls into them — confirmed by actually
+  linking without `-lwayland-client` etc.: the linker pulls in `lv_wayland_window.c.o` and
+  friends anyway and fails on dozens of undefined `wl_proxy_*`/`xkb_*` references. Not
+  something this wrapper can route around from the Go side; it's baked into this static
+  archive build.
 - FreeType, libjpeg, libpng, libwebp dev packages, even though this wrapper only uses the
-  Wayland backend: the prebuilt `liblvgl.a` has unconditional references to these libraries'
+  SDL2 backend: the prebuilt `liblvgl.a` has unconditional references to these libraries'
   symbols from its image-decoder modules (Fedora: `freetype-devel`, `libjpeg-turbo-devel`,
   `libpng-devel`, `libwebp-devel`).
 - Go 1.21+ (for `runtime/cgo.Handle`).
@@ -66,7 +78,7 @@ prefix instead, mirroring `install/include/lvgl`'s directory layout:
 | `core_*.go` | mostly `core/` | object model, events, animation, styles, tick/timer, init, scroll, tree walk, timers, group, observer/subject (`core_fs.go`/`core_indev.go` are the two exceptions, mirroring `fs/`/`indev/` instead — grouped under `core_` by theme, not exact header directory) |
 | `draw_color.go` | `draw/` | `Color` |
 | `layouts_*.go` | `layouts/` | flex, grid |
-| `display_wayland.go` | `display/` + `drivers/wayland/` | `Display`, window creation |
+| `display_sdl.go` | `display/` + `drivers/sdl/` | `Display`, window creation |
 | `font_symbols.go` | `font/` | `Symbol*` icon-font glyph constants |
 | `font_font.go` | `font/` + `libs/freetype/` + `libs/tiny_ttf/` | `Font`, built-in/FreeType/TinyTTF loading |
 | `widgets_*.go` | `widgets/` | one file per LVGL widget |
@@ -84,7 +96,7 @@ import "lvgl"
 func main() {
 	lvgl.Init()
 
-	disp := lvgl.WaylandWindowCreate(480, 320, "my app")
+	disp := lvgl.SDLWindowCreate(480, 320, "my app")
 	label := lvgl.NewLabel(disp.ScreenActive())
 	label.SetText("Hello!")
 	label.Center()
@@ -201,8 +213,9 @@ subsystems are now covered:
   `Step`) via a small C shim, since cgo can't take the address of a named C function directly.
 - **Group + Indev** (`core_group.go`, `core_indev.go`) — `Group` for keypad/encoder focus
   navigation, `Indev` for direct input-device access (cursor, key/point state, scroll/gesture
-  direction). `Display.Pointer()`/`Keyboard()`/`Touchscreen()` expose the Wayland driver's
-  input devices to attach a `Group` to.
+  direction). `Display.Pointer()`/`Keyboard()` create the SDL driver's mouse/keyboard input
+  devices to attach a `Group` to (SDL has no separate touchscreen source the way Wayland did —
+  its `lv_indev_t`s are process-wide, not per-`Display`, unlike the Wayland driver's).
 - **Observer/Subject data binding** (`core_observer.go`) — LVGL 9's reactive binding system:
   `Subject` (int/float/color/string values) plus `AddObserver` for custom callbacks, and
   `BindValue`/`BindText`/`BindChecked` on `Slider`/`Bar`/`Arc`/`Roller`/`SpinBox`/`Dropdown`/
@@ -280,13 +293,24 @@ it didn't actually have a linkable symbol and was removed.
 
 ## Known limitations
 
+The bullets below describing hands-on, visually-confirmed behavior ("verified working
+end-to-end", "confirmed visually") were established under the Wayland-backed build this
+wrapper used before switching to SDL2. The draw engine (`LV_USE_DRAW_SW=0`, NanoVG-on-GLES)
+and everything downstream of `TimerHandler()` is unchanged by the window-driver swap, so they
+should still hold. `go run ./example/basic` was re-confirmed working end-to-end under SDL2
+(real window, correct rendering), but the more exhaustive per-widget/per-feature claims below
+(the full `example/gallery` widget set, FFmpeg, GStreamer, the 60+-widget timer stall) haven't
+been individually re-run against SDL2 yet — treat those specific ones as carried-forward, not
+re-verified, until someone runs them.
+
 - **Rendering goes through NanoVG on OpenGL ES, not the software rasterizer** — this `lvgl-c`
   build has `LV_USE_DRAW_SW=0`, so there's no plain-CPU fallback path; every widget draw and
-  the window's own Wayland presentation depend on a working EGL/GLES context. Verified working
-  end-to-end (`go run ./example/gallery` renders every widget correctly, confirmed visually)
-  but this is why the `fbo_create_cb: Failed to create FBO` errors mentioned below aren't a
-  one-off — they're this build's normal draw engine hitting its cache limits, not a rarely-used
-  side path.
+  the window's own presentation depend on a working EGL/GLES context (under SDL2,
+  `LV_SDL_USE_EGL=1` requests this via the `SDL_WINDOW_OPENGL` flag — see Requirements).
+  Verified working end-to-end under the prior Wayland build (`go run ./example/gallery`
+  rendered every widget correctly, confirmed visually) but this is why the
+  `fbo_create_cb: Failed to create FBO` errors mentioned below aren't a one-off — they're this
+  build's normal draw engine hitting its cache limits, not a rarely-used side path.
 - **`FFmpeg` fails to decode any non-square video** — confirmed as a real bug in LVGL's own
   `lv_ffmpeg.c`, not the Go wrapper: a 320×320 test file (`ffmpeg -f lavfi -i
   testsrc=size=320x320 ...`) plays correctly end-to-end (verified visually, real decoded frames
@@ -322,8 +346,17 @@ it didn't actually have a linkable symbol and was removed.
   program (`example/coresubsystems`) against a fresh, small scene, where they're fully
   reliable — real apps should keep this in mind if a single screen accumulates a very large
   number of live widgets over time in this environment.
-- Wayland-only: no SDL2/DRM/X11 display backend wrapper (LVGL supports them, this package
-  doesn't wire them up).
+- SDL2-only: no Wayland/DRM/X11-native display backend wrapper (LVGL supports them and this
+  `lvgl-c` build even has the Wayland driver compiled in alongside SDL2, but this package only
+  wires up SDL2's).
+- **Closing the window via its `[x]` button exits the process directly, skipping Go cleanup**
+  — this build has `LV_SDL_DIRECT_EXIT=1` (see `lv_conf.h`), and LVGL's SDL driver calls
+  `exit(0)` from its own internal SDL event pump once the last window closes and SDL posts
+  `SDL_QUIT`, before control ever returns to Go's `Run()` loop. `Display.IsOpen()`/`Close()`
+  exist for a programmatic close or a multi-window app, not for observing a user-driven
+  window close — see the doc comment on `Display` in `display_sdl.go`. Not independently
+  verified by actually closing a window in this pass (no linkable SDL2 in this sandbox); read
+  directly from LVGL's `lv_sdl_window.c` source and this build's config.
 - **QRCode and Barcode fail to render** with this prebuilt `liblvgl.a`: LVGL logs
   `data size (...) is larger than max size (4096)` / `Failed to open image` at draw time. This
   is `LV_CACHE_DEF_SIZE` being configured too small in the library build to hold a rendered

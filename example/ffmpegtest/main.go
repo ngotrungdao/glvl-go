@@ -28,9 +28,9 @@ func main() {
 	}
 	fmt.Println("frame count:", n)
 
-	disp := lvgl.WaylandWindowCreate(480, 360, "lvgl-go ffmpeg test")
+	disp := lvgl.SDLWindowCreate(480, 360, "lvgl-go ffmpeg test")
 	if disp == nil {
-		panic("failed to create Wayland window")
+		panic("failed to create SDL window")
 	}
 	screen := disp.ScreenActive()
 

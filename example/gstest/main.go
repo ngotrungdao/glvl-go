@@ -19,9 +19,9 @@ func main() {
 	path := os.Args[1]
 
 	lvgl.Init()
-	disp := lvgl.WaylandWindowCreate(480, 360, "lvgl-go gstreamer test")
+	disp := lvgl.SDLWindowCreate(480, 360, "lvgl-go gstreamer test")
 	if disp == nil {
-		panic("failed to create Wayland window")
+		panic("failed to create SDL window")
 	}
 	screen := disp.ScreenActive()
 

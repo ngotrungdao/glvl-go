@@ -1,4 +1,4 @@
-// Command gallery opens a Wayland window showing every widget the lvgl
+// Command gallery opens an SDL window showing every widget the lvgl
 // package wraps, for visual regression checking after changes.
 package main
 
@@ -7,9 +7,9 @@ import "lvgl"
 func main() {
 	lvgl.Init()
 
-	disp := lvgl.WaylandWindowCreate(700, 480, "lvgl-go gallery")
+	disp := lvgl.SDLWindowCreate(700, 480, "lvgl-go gallery")
 	if disp == nil {
-		panic("failed to create Wayland window")
+		panic("failed to create SDL window")
 	}
 	screen := disp.ScreenActive()
 	screen.SetFlexFlow(lvgl.FlexFlowRowWrap)
